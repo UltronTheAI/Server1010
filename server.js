@@ -72,7 +72,7 @@ const sendEmail = (email, subject, text) => {
 };
 
 // Register user
-app.post('/register', (req, res) => {
+app.get('/register', (req, res) => {
     const { username, email } = req.body;
     const users = loadUsers();
     if (users[username]) {
@@ -85,7 +85,7 @@ app.post('/register', (req, res) => {
 });
 
 // Login user
-app.post('/login', (req, res) => {
+app.get('/login', (req, res) => {
     const { username, email } = req.body;
     const users = loadUsers();
     const user = users[username];
@@ -102,7 +102,7 @@ app.post('/login', (req, res) => {
 });
 
 // Forgot password
-app.post('/forgot-password', (req, res) => {
+app.get('/forgot-password', (req, res) => {
     const { email } = req.body;
     const users = loadUsers();
     const user = Object.values(users).find(u => u.email === email);
@@ -117,7 +117,7 @@ app.post('/forgot-password', (req, res) => {
 });
 
 // Encrypt data
-app.post('/encrypt', (req, res) => {
+app.get('/encrypt', (req, res) => {
     const { data, key } = req.body;
     const cipher = crypto.createCipher('aes-256-cbc', key);
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -126,7 +126,7 @@ app.post('/encrypt', (req, res) => {
 });
 
 // Decrypt data
-app.post('/decrypt', (req, res) => {
+app.get('/decrypt', (req, res) => {
     const { encryptedData, key } = req.body;
     const decipher = crypto.createDecipher('aes-256-cbc', key);
     let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
@@ -135,7 +135,7 @@ app.post('/decrypt', (req, res) => {
 });
 
 // Endpoint to send data to the main user
-app.post('/send-data', (req, res) => {
+app.get('/send-data', (req, res) => {
     const { token, data } = req.body;
     const users = loadUsers();
     const user = Object.values(users).find(u => u.token === token);
@@ -160,7 +160,7 @@ app.post('/send-data', (req, res) => {
 });
 
 // Endpoint to retrieve data using token
-app.post('/retrieve-data', (req, res) => {
+app.get('/retrieve-data', (req, res) => {
     const { token } = req.body;
     const userDir = path.join(dataDir, token);
 
