@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // For generating random strings
 
 const app = express();
-const port = 3000;
+const port = 5000;
 
 app.use(bodyParser.json());
 
@@ -72,7 +72,7 @@ const sendEmail = (email, subject, text) => {
 };
 
 // Register user
-app.get('/register', (req, res) => {
+app.post('/register', (req, res) => {
     const { username, email } = req.body;
     const users = loadUsers();
     if (users[username]) {
@@ -85,7 +85,7 @@ app.get('/register', (req, res) => {
 });
 
 // Login user
-app.get('/login', (req, res) => {
+app.post('/login', (req, res) => {
     const { username, email } = req.body;
     const users = loadUsers();
     const user = users[username];
@@ -102,7 +102,7 @@ app.get('/login', (req, res) => {
 });
 
 // Forgot password
-app.get('/forgot-password', (req, res) => {
+app.post('/forgot-password', (req, res) => {
     const { email } = req.body;
     const users = loadUsers();
     const user = Object.values(users).find(u => u.email === email);
@@ -117,7 +117,7 @@ app.get('/forgot-password', (req, res) => {
 });
 
 // Encrypt data
-app.get('/encrypt', (req, res) => {
+app.post('/encrypt', (req, res) => {
     const { data, key } = req.body;
     const cipher = crypto.createCipher('aes-256-cbc', key);
     let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -126,7 +126,7 @@ app.get('/encrypt', (req, res) => {
 });
 
 // Decrypt data
-app.get('/decrypt', (req, res) => {
+app.post('/decrypt', (req, res) => {
     const { encryptedData, key } = req.body;
     const decipher = crypto.createDecipher('aes-256-cbc', key);
     let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
@@ -135,7 +135,7 @@ app.get('/decrypt', (req, res) => {
 });
 
 // Endpoint to send data to the main user
-app.get('/send-data', (req, res) => {
+app.post('/send-data', (req, res) => {
     const { token, data } = req.body;
     const users = loadUsers();
     const user = Object.values(users).find(u => u.token === token);
@@ -160,7 +160,7 @@ app.get('/send-data', (req, res) => {
 });
 
 // Endpoint to retrieve data using token
-app.get('/retrieve-data', (req, res) => {
+app.post('/retrieve-data', (req, res) => {
     const { token } = req.body;
     const userDir = path.join(dataDir, token);
 
@@ -190,6 +190,6 @@ app.get('/retrieve-data', (req, res) => {
 });
 
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, () => {
     console.log(`Server running on http://0.0.0.0:${port}`);
 });
