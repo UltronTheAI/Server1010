@@ -11,9 +11,6 @@ const port = 5000;
 
 app.use(bodyParser.json());
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Mock database file path
 const usersFilePath = path.join(__dirname, 'login', 'login.json');
 const dataDir = path.join(__dirname, 'data');
