@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // For generating random strings
 
 const app = express();
-const port = 5000;
+const port = 3000;
 
 app.use(bodyParser.json());
 
