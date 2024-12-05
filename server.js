@@ -7,9 +7,12 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // For generating random strings
 
 const app = express();
-const port = 5000;
+const port = 10000;
 
 app.use(bodyParser.json());
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Mock database file path
 const usersFilePath = path.join(__dirname, 'login', 'login.json');
@@ -187,6 +190,6 @@ app.post('/retrieve-data', (req, res) => {
 });
 
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${port}`);
 });
