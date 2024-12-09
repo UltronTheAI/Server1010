@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto'); // For generating random strings
 
 const app = express();
-const port = 10000;
+const port = 5000;
 
 app.use(bodyParser.json());
 
@@ -70,6 +70,123 @@ const sendEmail = (email, subject, text) => {
         }
     });
 };
+// Utility functions for database operations
+function loadDBConfig() {
+    const configPath = path.join(__dirname, 'DB', 'db_config.json');
+    const rawData = fs.readFileSync(configPath);
+    return JSON.parse(rawData);
+}
+
+function saveDBConfig(config) {
+    const configPath = path.join(__dirname, 'DB', 'db_config.json');
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+function listDatabases() {
+    const config = loadDBConfig();
+    return config.databases;
+}
+
+function listTables(dbName) {
+    const dbPath = path.join(__dirname, 'DB', dbName, 'list.json');
+    const rawData = fs.readFileSync(dbPath);
+    const db = JSON.parse(rawData);
+    return db.tables;
+}
+
+function viewTableData(dbName, tableName) {
+    const tablePath = path.join(__dirname, 'DB', dbName, tableName);
+    const files = fs.readdirSync(tablePath);
+    const data = files.filter(file => file.endsWith('.json')).map(file => {
+        const rawData = fs.readFileSync(path.join(tablePath, file));
+        return JSON.parse(rawData);
+    });
+    return data;
+}
+
+function createDatabase(dbName) {
+    const config = loadDBConfig();
+    if (config.databases.includes(dbName)) {
+        throw new Error(`Database ${dbName} already exists.`);
+    }
+    config.databases.push(dbName);
+    saveDBConfig(config);
+
+    const dbPath = path.join(__dirname, 'DB', dbName);
+    fs.mkdirSync(dbPath);
+    fs.writeFileSync(path.join(dbPath, 'list.json'), JSON.stringify({ tables: [] }, null, 2));
+}
+
+function createTable(dbName, tableName) {
+    const dbPath = path.join(__dirname, 'DB', dbName);
+    const listPath = path.join(dbPath, 'list.json');
+
+    const dbConfig = JSON.parse(fs.readFileSync(listPath));
+    if (dbConfig.tables.includes(tableName)) {
+        throw new Error(`Table ${tableName} already exists in database ${dbName}.`);
+    }
+    dbConfig.tables.push(tableName);
+    fs.writeFileSync(listPath, JSON.stringify(dbConfig, null, 2));
+
+    const tablePath = path.join(dbPath, tableName);
+    fs.mkdirSync(tablePath);
+    fs.writeFileSync(path.join(tablePath, 'table_config.json'), JSON.stringify({ columns: {} }, null, 2));
+}
+
+function insertData(dbName, tableName, data) {
+    const tablePath = path.join(__dirname, 'DB', dbName, tableName);
+    const timestamp = Date.now().toString();
+    fs.writeFileSync(path.join(tablePath, `${timestamp}.json`), JSON.stringify(data, null, 2));
+}
+
+// API routes
+app.get('/list-databases', (req, res) => {
+    const databases = listDatabases();
+    res.json(databases);
+});
+
+app.get('/list-tables', (req, res) => {
+    const dbName = req.query.dbName;
+    const tables = listTables(dbName);
+    res.json(tables);
+});
+
+app.get('/view-table-data', (req, res) => {
+    const dbName = req.query.dbName;
+    const tableName = req.query.tableName;
+    const data = viewTableData(dbName, tableName);
+    res.json(data);
+});
+
+app.post('/create-database', (req, res) => {
+    const dbName = req.body.dbName;
+    try {
+        createDatabase(dbName);
+        res.json({ message: `Database ${dbName} created successfully.` });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/create-table', (req, res) => {
+    const { dbName, tableName } = req.body;
+    try {
+        createTable(dbName, tableName);
+        res.json({ message: `Table ${tableName} created successfully in database ${dbName}.` });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/insert-data', (req, res) => {
+    const { dbName, tableName, data } = req.body;
+    try {
+        insertData(dbName, tableName, data);
+        res.json({ message: `Data inserted into table ${tableName} in database ${dbName}.` });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 // Register user
 app.post('/register', (req, res) => {
